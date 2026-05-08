@@ -3,622 +3,634 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BD Maintenance Log — GitHub Sync</title>
+<title>Breakdown Maintenance Log</title>
 <style>
   :root {
-    --pri:#0078D4; --pri-dk:#005A9E; --bg:#F5F5F5; --card:#FFFFFF;
-    --txt:#333; --txt-l:#666; --bdr:#E0E0E0;
-    --ok:#107C10; --err:#D83B01; --warn:#FFB900; --row-alt:#F9F9F9;
+    --primary: #0078D4;
+    --primary-dark: #005A9E;
+    --bg: #F5F5F5;
+    --card-bg: #FFFFFF;
+    --text: #333333;
+    --text-light: #666666;
+    --border: #E0E0E0;
+    --success: #107C10;
+    --danger: #D83B01;
+    --row-alt: #F9F9F9;
   }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
 
-  /* HEADER */
-  .header{background:linear-gradient(135deg,var(--pri),var(--pri-dk));color:#fff;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.15);flex-wrap:wrap;gap:10px}
-  .hdr-left{display:flex;align-items:center;gap:12px}
-  .hdr-left h1{font-size:20px;font-weight:600}
-  .hdr-left p{font-size:11px;opacity:.8;margin-top:1px}
-  .hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .sync-badge{font-size:11px;padding:5px 12px;border-radius:20px;font-weight:600;display:flex;align-items:center;gap:4px;cursor:default}
-  .sync-ok{background:rgba(16,124,16,.25);color:#A8FFA8}
-  .sync-local{background:rgba(255,185,0,.3);color:#FFF3CD}
-  .sync-err{background:rgba(216,59,1,.3);color:#FFD0C0}
-  .sync-off{background:rgba(255,255,255,.15);color:rgba(255,255,255,.7)}
-  .btn-icon{background:rgba(255,255,255,.15);border:none;color:#fff;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;transition:.2s}
-  .btn-icon:hover{background:rgba(255,255,255,.3)}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* CONTAINER */
-  .container{max-width:980px;margin:18px auto;padding:0 14px}
-
-  /* SETTINGS PANEL */
-  .settings-panel{background:var(--card);border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:18px;overflow:hidden;max-height:0;transition:max-height .4s ease;opacity:0}
-  .settings-panel.open{max-height:600px;opacity:1}
-  .settings-inner{padding:22px 26px}
-  .settings-inner h3{font-size:15px;color:var(--pri);margin-bottom:14px;display:flex;align-items:center;gap:6px}
-  .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
-  .set-grid .full{grid-column:1/-1}
-  .set-group{display:flex;flex-direction:column}
-  .set-group label{font-size:12px;font-weight:600;margin-bottom:4px;color:var(--txt)}
-  .set-group input{padding:8px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:13px;font-family:inherit}
-  .set-group input:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(0,120,212,.12)}
-  .set-group .hint{font-size:10.5px;color:var(--txt-l);margin-top:3px}
-  .set-btns{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
-
-  /* CARD */
-  .card{background:var(--card);border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:22px 26px;margin-bottom:18px}
-  .card-title{font-size:15px;font-weight:600;color:var(--pri);margin-bottom:16px;padding-bottom:9px;border-bottom:2px solid var(--pri);display:flex;align-items:center;gap:7px}
-
-  /* STATS */
-  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-  .stat-card{background:var(--card);border-radius:12px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center}
-  .stat-card .sv{font-size:24px;font-weight:700;color:var(--pri)}
-  .stat-card .sl{font-size:10.5px;color:var(--txt-l);margin-top:2px}
-
-  /* FORM */
-  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
-  .fg{display:flex;flex-direction:column}.fg.full{grid-column:1/-1}
-  .fg label{font-size:12px;font-weight:600;margin-bottom:4px}.fg .req{color:var(--err)}
-  .fg input,.fg select,.fg textarea{padding:8px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:13px;font-family:inherit;background:#fff}
-  .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(0,120,212,.12)}
-  .fg textarea{resize:vertical;min-height:68px}
-  .dur-box{padding:8px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:13px;background:#F0F6FF;color:var(--pri);font-weight:600;min-height:38px;display:flex;align-items:center}
-
-  /* BUTTONS */
-  .btn-row{display:flex;gap:8px;justify-content:flex-end}
-  .btn{padding:8px 20px;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:5px}
-  .btn-pri{background:var(--pri);color:#fff}.btn-pri:hover{background:var(--pri-dk)}
-  .btn-ok{background:var(--ok);color:#fff}.btn-ok:hover{background:#0B5E0B}
-  .btn-out{background:#fff;color:var(--txt);border:1.5px solid var(--bdr)}.btn-out:hover{background:var(--bg)}
-  .btn-err{background:var(--err);color:#fff}.btn-err:hover{background:#A52C00}
-  .btn-warn{background:var(--warn);color:#333}.btn-warn:hover{background:#E6A700}
-  .btn-sm{padding:6px 14px;font-size:11.5px}
-
-  /* TABLE */
-  .tw{overflow-x:auto;margin-top:10px}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  thead th{background:var(--pri);color:#fff;padding:8px 9px;text-align:center;font-weight:600;white-space:nowrap;position:sticky;top:0}
-  tbody td{padding:7px 9px;border-bottom:1px solid var(--bdr);text-align:center;vertical-align:middle}
-  tbody tr:nth-child(even){background:var(--row-alt)}
-  tbody tr:hover{background:#E8F4FD}
-  .no-data{text-align:center;padding:32px;color:var(--txt-l);font-size:13px}
-
-  /* BADGE */
-  .badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:10.5px;font-weight:600}
-  .b-conv{background:#E3F2FD;color:#1565C0}.b-asrs{background:#F3E5F5;color:#7B1FA2}
-  .b-elec{background:#FFF3E0;color:#E65100}.b-util{background:#E8F5E9;color:#2E7D32}
-  .b-other{background:#F5F5F5;color:#616161}
-
-  /* SYNC BAR */
-  .sync-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 18px;background:#FAFAFA;border-radius:10px;border:1px dashed var(--bdr);margin-top:12px}
-  .sync-bar span.label{font-size:12px;font-weight:600;color:var(--txt-l)}
-  .sync-bar .last-sync{margin-left:auto;font-size:10.5px;color:var(--txt-l)}
-
-  /* FILTER */
-  .filter-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-  .filter-row select,.filter-row input{padding:6px 10px;border:1.5px solid var(--bdr);border-radius:8px;font-size:12px;font-family:inherit}
-  .filter-row label{font-size:11.5px;font-weight:600;color:var(--txt-l)}
-
-  .btn-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px}
-  .btn-del:hover{background:#FDE8E0}
-
-  /* TOAST */
-  .toast{position:fixed;bottom:24px;right:24px;padding:11px 20px;border-radius:10px;font-size:12.5px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);transform:translateY(100px);opacity:0;transition:.4s;z-index:1000;color:#fff}
-  .toast.show{transform:translateY(0);opacity:1}
-  .toast.t-ok{background:var(--ok)}.toast.t-err{background:var(--err)}.toast.t-warn{background:var(--warn);color:#333}
-
-  /* LOADING OVERLAY */
-  .loading{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:999;justify-content:center;align-items:center}
-  .loading.active{display:flex}
-  .spinner{width:48px;height:48px;border:4px solid #fff;border-top-color:var(--pri);border-radius:50%;animation:spin .8s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* RESPONSIVE */
-  @media(max-width:768px){
-    .form-grid,.set-grid{grid-template-columns:1fr}
-    .stats-row{grid-template-columns:repeat(2,1fr)}
-    .header{padding:14px;flex-direction:column;align-items:flex-start}
-    .card{padding:16px 14px}
-    .btn-row{flex-direction:column}.btn{justify-content:center}
-    .sync-bar{flex-direction:column;align-items:flex-start}.sync-bar .last-sync{margin-left:0}
-    .filter-row{flex-direction:column;align-items:flex-start}
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
   }
-  @media print{
-    body{background:#fff}.header{background:#333!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .card{box-shadow:none;border:1px solid #ddd}
-    #formCard,.sync-bar,.filter-row,.btn-del,.hdr-right,.settings-panel,.set-btns,.btn-row{display:none!important}
-    thead th{background:#333!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .header-icon { font-size: 32px; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header p { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+
+  /* ── Container ── */
+  .container {
+    max-width: 960px;
+    margin: 24px auto;
+    padding: 0 16px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Form Grid ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 24px;
+  }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  .form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .form-group label .required {
+    color: var(--danger);
+    margin-left: 2px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #fff;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0,120,212,0.15);
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+
+  .duration-display {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: #F0F6FF;
+    color: var(--primary);
+    font-weight: 600;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ── Buttons ── */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    justify-content: flex-end;
+  }
+  .btn {
+    padding: 11px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+  .btn-success {
+    background: var(--success);
+    color: #fff;
+  }
+  .btn-success:hover { background: #0B5E0B; transform: translateY(-1px); }
+  .btn-outline {
+    background: #fff;
+    color: var(--text);
+    border: 1.5px solid var(--border);
+  }
+  .btn-outline:hover { background: var(--bg); }
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+  }
+  .btn-danger:hover { background: #A52C00; }
+
+  /* ── Table ── */
+  .table-wrapper {
+    overflow-x: auto;
+    margin-top: 12px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 12px;
+    text-align: center;
+    font-weight: 600;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+  }
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    vertical-align: middle;
+  }
+  tbody tr:nth-child(even) { background: var(--row-alt); }
+  tbody tr:hover { background: #E8F4FD; }
+  .no-data {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--success);
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: 1000;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── Badge ── */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-conv { background: #E3F2FD; color: #1565C0; }
+  .badge-asrs { background: #F3E5F5; color: #7B1FA2; }
+  .badge-elec { background: #FFF3E0; color: #E65100; }
+  .badge-util { background: #E8F5E9; color: #2E7D32; }
+  .badge-other { background: #F5F5F5; color: #616161; }
+
+  /* ── Stats ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .stat-card .stat-label {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+
+  /* ── Delete btn ── */
+  .btn-del {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .btn-del:hover { background: #FDE8E0; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .header { padding: 18px 16px; }
+    .card { padding: 20px 16px; }
+    .btn-row { flex-direction: column; }
+    .btn { justify-content: center; }
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; }
+    .header { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card { box-shadow: none; border: 1px solid #ddd; }
+    .btn-row, .btn-del, #formCard { display: none !important; }
+    .stats-row { break-inside: avoid; }
+    thead th { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div class="loading" id="loading"><div class="spinner"></div></div>
-
-<!-- HEADER -->
+<!-- ═══ Header ═══ -->
 <div class="header">
-  <div class="hdr-left">
-    <div style="font-size:28px">🔧</div>
-    <div>
-      <h1>Breakdown Maintenance Log</h1>
-      <p>설비 고장 정비 이력 — GitHub Sync</p>
-    </div>
-  </div>
-  <div class="hdr-right">
-    <div class="sync-badge sync-off" id="syncBadge"><span>●</span> <span id="syncBadgeText">미연결</span></div>
-    <button class="btn-icon" onclick="pullFromGitHub()" title="GitHub에서 동기화">🔄</button>
-    <button class="btn-icon" onclick="toggleSettings()" title="설정" id="settingsBtn">⚙️</button>
+  <div class="header-icon">🔧</div>
+  <div>
+    <h1>Breakdown Maintenance Log</h1>
+    <p>설비 고장 정비 이력 관리 시스템</p>
   </div>
 </div>
 
 <div class="container">
 
-<!-- SETTINGS -->
-<div class="settings-panel" id="settingsPanel">
-  <div class="settings-inner">
-    <h3>⚙️ GitHub 연결 설정</h3>
-    <div class="set-grid">
-      <div class="set-group">
-        <label>GitHub Owner (사용자명)</label>
-        <input type="text" id="cfgOwner" placeholder="예: ohjun-kwon">
-        <div class="hint">GitHub 사용자명 또는 Organization명</div>
-      </div>
-      <div class="set-group">
-        <label>Repository 이름</label>
-        <input type="text" id="cfgRepo" placeholder="예: bd-maintenance-log">
-        <div class="hint">저장소 이름 (미리 생성 필요)</div>
-      </div>
-      <div class="set-group">
-        <label>Personal Access Token (PAT)</label>
-        <input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx">
-        <div class="hint">GitHub Settings → Developer settings → Fine-grained tokens</div>
-      </div>
-      <div class="set-group">
-        <label>Excel 파일 경로</label>
-        <input type="text" id="cfgPath" placeholder="data/BD_Maintenance_Log.xlsx" value="data/BD_Maintenance_Log.xlsx">
-        <div class="hint">저장소 내 Excel 파일 경로</div>
-      </div>
-      <div class="set-group full">
-        <label><input type="checkbox" id="cfgAutoSync" checked> 이력 등록 시 자동으로 GitHub에 Push</label>
-      </div>
+  <!-- ═══ Stats ═══ -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-label">총 건수</div>
     </div>
-    <div class="set-btns">
-      <button class="btn btn-out btn-sm" onclick="testConnection()">🔍 연결 테스트</button>
-      <button class="btn btn-pri btn-sm" onclick="saveConfig()">💾 설정 저장</button>
+    <div class="stat-card">
+      <div class="stat-value" id="statMonth">0</div>
+      <div class="stat-label">이번 달</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statAvgDur">-</div>
+      <div class="stat-label">평균 소요시간</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statTopEquip">-</div>
+      <div class="stat-label">최다 고장 설비</div>
     </div>
   </div>
-</div>
 
-<!-- STATS -->
-<div class="stats-row">
-  <div class="stat-card"><div class="sv" id="sTotal">0</div><div class="sl">총 건수</div></div>
-  <div class="stat-card"><div class="sv" id="sMonth">0</div><div class="sl">이번 달</div></div>
-  <div class="stat-card"><div class="sv" id="sAvg">-</div><div class="sl">평균 소요시간</div></div>
-  <div class="stat-card"><div class="sv" id="sTop">-</div><div class="sl">최다 고장 설비</div></div>
-</div>
+  <!-- ═══ Input Form ═══ -->
+  <div class="card" id="formCard">
+    <div class="card-title">📝 정비 이력 입력</div>
+    <form id="bdForm">
+      <div class="form-grid">
+        <!-- Row 1 -->
+        <div class="form-group">
+          <label>날짜 <span class="required">*</span></label>
+          <input type="date" id="fDate" required>
+        </div>
+        <div class="form-group">
+          <label>설비 (Equipment) <span class="required">*</span></label>
+          <select id="fEquip" required>
+            <option value="">-- 선택 --</option>
+            <option value="CONVEYOR">CONVEYOR</option>
+            <option value="ASRS">ASRS</option>
+            <option value="ELECTRICAL">ELECTRICAL</option>
+            <option value="UTILITY">UTILITY</option>
+            <option value="OTHER">OTHER</option>
+          </select>
+        </div>
 
-<!-- FORM -->
-<div class="card" id="formCard">
-  <div class="card-title">📝 정비 이력 입력</div>
-  <form id="bdForm" autocomplete="off">
-    <div class="form-grid">
-      <div class="fg"><label>날짜<span class="req">*</span></label><input type="date" id="fDate" required></div>
-      <div class="fg"><label>설비<span class="req">*</span></label>
-        <select id="fEquip" required><option value="">-- 선택 --</option>
-          <option>CONVEYOR</option><option>ASRS</option><option>ELECTRICAL</option><option>UTILITY</option><option>OTHER</option>
-        </select>
+        <!-- Row 2 -->
+        <div class="form-group">
+          <label>시작시간 <span class="required">*</span></label>
+          <input type="time" id="fStart" required>
+        </div>
+        <div class="form-group">
+          <label>종료시간 <span class="required">*</span></label>
+          <input type="time" id="fEnd" required>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="form-group">
+          <label>소요시간 (자동계산)</label>
+          <div class="duration-display" id="fDuration">시작/종료 시간을 입력하세요</div>
+        </div>
+        <div class="form-group">
+          <label>사용자재 (Parts Used)</label>
+          <input type="text" id="fParts" placeholder="예: Belt, Bearing, Fuse 등">
+        </div>
+
+        <!-- Row 4 -->
+        <div class="form-group full">
+          <label>현상 (Symptom) <span class="required">*</span></label>
+          <textarea id="fSymptom" placeholder="고장 현상을 상세히 기술하세요" required></textarea>
+        </div>
+
+        <!-- Row 5 -->
+        <div class="form-group full">
+          <label>조치방법 (Action Taken) <span class="required">*</span></label>
+          <textarea id="fAction" placeholder="조치 내용을 상세히 기술하세요" required></textarea>
+        </div>
       </div>
-      <div class="fg"><label>시작시간<span class="req">*</span></label><input type="time" id="fStart" required></div>
-      <div class="fg"><label>종료시간<span class="req">*</span></label><input type="time" id="fEnd" required></div>
-      <div class="fg"><label>소요시간 (자동)</label><div class="dur-box" id="fDur">시작/종료를 입력하세요</div></div>
-      <div class="fg"><label>사용자재</label><input type="text" id="fParts" placeholder="Belt, Bearing, Fuse"></div>
-      <div class="fg full"><label>현상<span class="req">*</span></label><textarea id="fSymptom" placeholder="고장 현상 상세 기술" required></textarea></div>
-      <div class="fg full"><label>조치방법<span class="req">*</span></label><textarea id="fAction" placeholder="조치 내용 상세 기술" required></textarea></div>
-    </div>
-    <div class="btn-row" style="margin-top:16px">
-      <button type="button" class="btn btn-out" onclick="resetForm()">↻ 초기화</button>
-      <button type="submit" class="btn btn-pri">✚ 등록 & 저장</button>
-    </div>
-  </form>
-</div>
 
-<!-- TABLE -->
-<div class="card">
-  <div class="card-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
-    <span>📋 정비 이력</span>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn btn-ok btn-sm" onclick="exportExcel()">📥 Excel</button>
-      <button class="btn btn-err btn-sm" onclick="clearAll()">🗑 전체삭제</button>
-    </div>
-  </div>
-  <div class="filter-row">
-    <label>필터:</label>
-    <select id="filterEquip" onchange="renderTable()">
-      <option value="">전체 설비</option><option>CONVEYOR</option><option>ASRS</option><option>ELECTRICAL</option><option>UTILITY</option><option>OTHER</option>
-    </select>
-    <input type="month" id="filterMonth" onchange="renderTable()">
-    <button class="btn btn-out btn-sm" onclick="document.getElementById('filterEquip').value='';document.getElementById('filterMonth').value='';renderTable()">초기화</button>
-  </div>
-  <div class="tw">
-    <table><thead><tr>
-      <th>No.</th><th>날짜</th><th>설비</th><th>시작</th><th>종료</th><th>소요</th><th>현상</th><th>조치</th><th>자재</th><th></th>
-    </tr></thead><tbody id="tBody"><tr><td colspan="10" class="no-data">데이터 없음</td></tr></tbody></table>
+      <div class="btn-row" style="margin-top:20px;">
+        <button type="button" class="btn btn-outline" onclick="resetForm()">↻ 초기화</button>
+        <button type="submit" class="btn btn-primary">✚ 이력 등록</button>
+      </div>
+    </form>
   </div>
 
-  <!-- SYNC BAR -->
-  <div class="sync-bar">
-    <span class="label">🔗 GitHub 동기화</span>
-    <button class="btn btn-pri btn-sm" onclick="pullFromGitHub()">📥 Pull (불러오기)</button>
-    <button class="btn btn-warn btn-sm" onclick="pushToGitHub()">📤 Push (업로드)</button>
-    <button class="btn btn-out btn-sm" onclick="exportJSON()">💾 JSON 백업</button>
-    <input type="file" id="jsonImport" accept=".json" style="display:none" onchange="importJSON(event)">
-    <button class="btn btn-out btn-sm" onclick="document.getElementById('jsonImport').click()">📂 JSON 복원</button>
-    <div class="last-sync" id="lastSync">마지막 동기화: -</div>
+  <!-- ═══ Records Table ═══ -->
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between;">
+      <span>📋 정비 이력 목록</span>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-success" onclick="exportExcel()" style="padding:7px 16px; font-size:13px;">
+          📥 Excel 다운로드
+        </button>
+        <button class="btn btn-danger" onclick="clearAll()" style="padding:7px 16px; font-size:13px;">
+          🗑 전체 삭제
+        </button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>날짜</th>
+            <th>설비</th>
+            <th>시작</th>
+            <th>종료</th>
+            <th>소요시간</th>
+            <th>현상</th>
+            <th>조치방법</th>
+            <th>사용자재</th>
+            <th>삭제</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="10" class="no-data">등록된 이력이 없습니다</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
 
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
+<!-- Toast -->
+<div class="toast" id="toast">✅ 이력이 등록되었습니다</div>
 
-<!-- SheetJS -->
+<!-- ═══ SheetJS CDN ═══ -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
 <script>
-/* ═══════════════════════════════════════════
-   CONFIG
-   ═══════════════════════════════════════════ */
-const CFG_KEY='bd_gh_cfg', STORE_KEY='bd_maint_log', SHA_KEY='bd_gh_sha';
+// ── Data Store (localStorage) ──
+const STORAGE_KEY = 'bd_maintenance_log';
 
-function loadConfig(){
-  try{return JSON.parse(localStorage.getItem(CFG_KEY))||{}}catch{return{}}
+function loadRecords() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
 }
-function saveConfig(){
-  const c={
-    owner:document.getElementById('cfgOwner').value.trim(),
-    repo:document.getElementById('cfgRepo').value.trim(),
-    token:document.getElementById('cfgToken').value.trim(),
-    path:document.getElementById('cfgPath').value.trim()||'data/BD_Maintenance_Log.xlsx',
-    autoSync:document.getElementById('cfgAutoSync').checked
-  };
-  localStorage.setItem(CFG_KEY,JSON.stringify(c));
-  toast('💾 설정이 저장되었습니다','ok');
-  updateSyncBadge();
-}
-function loadConfigUI(){
-  const c=loadConfig();
-  document.getElementById('cfgOwner').value=c.owner||'';
-  document.getElementById('cfgRepo').value=c.repo||'';
-  document.getElementById('cfgToken').value=c.token||'';
-  document.getElementById('cfgPath').value=c.path||'data/BD_Maintenance_Log.xlsx';
-  document.getElementById('cfgAutoSync').checked=c.autoSync!==false;
-}
-function isConfigured(){const c=loadConfig();return !!(c.owner&&c.repo&&c.token)}
-
-function toggleSettings(){
-  const p=document.getElementById('settingsPanel');
-  p.classList.toggle('open');
+function saveRecords(records) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 }
 
-/* ═══════════════════════════════════════════
-   LOCAL STORAGE
-   ═══════════════════════════════════════════ */
-function loadRecords(){try{return JSON.parse(localStorage.getItem(STORE_KEY))||[]}catch{return[]}}
-function saveLocal(records){localStorage.setItem(STORE_KEY,JSON.stringify(records))}
+// ── Duration Calc ──
+const fStart = document.getElementById('fStart');
+const fEnd = document.getElementById('fEnd');
+const fDuration = document.getElementById('fDuration');
 
-/* ═══════════════════════════════════════════
-   GITHUB API
-   ═══════════════════════════════════════════ */
-async function ghAPI(method,path,body){
-  const c=loadConfig();
-  const url='https://api.github.com/repos/'+c.owner+'/'+c.repo+'/contents/'+path;
-  const opts={method,headers:{'Authorization':'token '+c.token,'Accept':'application/vnd.github.v3+json'}};
-  if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body)}
-  return fetch(url,opts);
-}
-
-async function testConnection(){
-  if(!isConfigured()){toast('⚠️ 설정을 먼저 입력하세요','warn');return}
-  showLoading(true);
-  try{
-    const c=loadConfig();
-    const res=await fetch('https://api.github.com/repos/'+c.owner+'/'+c.repo,{
-      headers:{'Authorization':'token '+c.token,'Accept':'application/vnd.github.v3+json'}
-    });
-    if(res.ok){
-      const d=await res.json();
-      toast('✅ 연결 성공! Repo: '+d.full_name+(d.private?' (Private)':' (Public)'),'ok');
-      updateSyncBadge('ok','연결됨');
-    } else {
-      const e=await res.json();
-      toast('❌ 연결 실패: '+e.message,'err');
-      updateSyncBadge('err','연결 실패');
-    }
-  }catch(e){toast('❌ 네트워크 오류: '+e.message,'err');updateSyncBadge('err','오류')}
-  finally{showLoading(false)}
-}
-
-/* ── PULL: GitHub → Local ── */
-async function pullFromGitHub(){
-  if(!isConfigured()){toast('⚠️ GitHub 설정을 먼저 완료하세요','warn');toggleSettings();return}
-  showLoading(true);
-  try{
-    const c=loadConfig();
-    const res=await ghAPI('GET',c.path);
-    if(res.status===404){
-      toast('📭 GitHub에 Excel 파일이 없습니다. 데이터를 입력 후 Push하세요.','warn');
-      updateSyncBadge('local','파일 없음');
-      showLoading(false);return;
-    }
-    if(!res.ok){const e=await res.json();throw new Error(e.message)}
-    const data=await res.json();
-    localStorage.setItem(SHA_KEY,data.sha);
-
-    // Decode base64 → Excel → Records
-    const b64=data.content.replace(/\n/g,'');
-    const bin=atob(b64);
-    const bytes=new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-    const wb=XLSX.read(bytes,{type:'array'});
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    const rows=XLSX.utils.sheet_to_json(ws);
-
-    const records=rows.map(r=>({
-      id: r['ID']||Date.now()+Math.random(),
-      date: r['날짜']||'',
-      equip: r['설비']||'',
-      start: r['시작시간']||'',
-      end: r['종료시간']||'',
-      duration: r['소요시간']||'',
-      durationMin: r['소요시간(분)']||0,
-      symptom: r['현상']||'',
-      action: r['조치방법']||'',
-      parts: r['사용자재']||'',
-      createdAt: r['등록시간']||''
-    }));
-
-    saveLocal(records);
-    renderTable();
-    const ts=new Date().toLocaleString('ko-KR');
-    document.getElementById('lastSync').textContent='마지막 동기화: '+ts+' (Pull)';
-    updateSyncBadge('ok',records.length+'건 동기화됨');
-    toast('📥 GitHub에서 '+records.length+'건 불러오기 완료','ok');
-  }catch(e){
-    console.error(e);
-    toast('❌ Pull 실패: '+e.message,'err');
-    updateSyncBadge('err','Pull 실패');
-  }finally{showLoading(false)}
-}
-
-/* ── PUSH: Local → GitHub ── */
-async function pushToGitHub(){
-  if(!isConfigured()){toast('⚠️ GitHub 설정을 먼저 완료하세요','warn');toggleSettings();return}
-  const records=loadRecords();
-  if(records.length===0){toast('⚠️ 업로드할 데이터가 없습니다','warn');return}
-  showLoading(true);
-  try{
-    const c=loadConfig();
-
-    // Get current SHA (for update)
-    let sha=localStorage.getItem(SHA_KEY)||null;
-    try{
-      const chk=await ghAPI('GET',c.path);
-      if(chk.ok){const d=await chk.json();sha=d.sha}
-      else if(chk.status===404){sha=null}
-    }catch{}
-
-    // Build Excel
-    const exData=records.map((r,i)=>({
-      'ID':r.id||i+1,
-      '날짜':r.date,'설비':r.equip,
-      '시작시간':r.start,'종료시간':r.end,
-      '소요시간':r.duration,'소요시간(분)':r.durationMin,
-      '현상':r.symptom,'조치방법':r.action,
-      '사용자재':r.parts||'','등록시간':r.createdAt||''
-    }));
-    const ws=XLSX.utils.json_to_sheet(exData);
-    ws['!cols']=[{wch:14},{wch:12},{wch:13},{wch:10},{wch:10},{wch:14},{wch:10},{wch:35},{wch:35},{wch:20},{wch:22}];
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,'BD_Log');
-    const b64=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
-
-    // Commit
-    const body={
-      message:'[BD Log] Update '+records.length+' records — '+new Date().toISOString().slice(0,16),
-      content:b64
-    };
-    if(sha) body.sha=sha;
-
-    const res=await ghAPI('PUT',c.path,body);
-    if(!res.ok){const e=await res.json();throw new Error(e.message)}
-    const result=await res.json();
-    localStorage.setItem(SHA_KEY,result.content.sha);
-
-    const ts=new Date().toLocaleString('ko-KR');
-    document.getElementById('lastSync').textContent='마지막 동기화: '+ts+' (Push)';
-    updateSyncBadge('ok',records.length+'건 업로드됨');
-    toast('📤 GitHub에 '+records.length+'건 업로드 완료','ok');
-  }catch(e){
-    console.error(e);
-    toast('❌ Push 실패: '+e.message,'err');
-    updateSyncBadge('err','Push 실패');
-  }finally{showLoading(false)}
-}
-
-/* ═══════════════════════════════════════════
-   DURATION
-   ═══════════════════════════════════════════ */
-const elS=document.getElementById('fStart'),elE=document.getElementById('fEnd'),elD=document.getElementById('fDur');
-function calcDur(){
-  if(!elS.value||!elE.value){elD.textContent='시작/종료를 입력하세요';return''}
-  const[sh,sm]=elS.value.split(':').map(Number),[eh,em]=elE.value.split(':').map(Number);
-  let d=(eh*60+em)-(sh*60+sm);if(d<0)d+=1440;
-  const h=Math.floor(d/60),m=d%60,t=h>0?h+'시간 '+m+'분':m+'분';
-  elD.textContent=t+' ('+d+'min)';return t;
-}
-function getDurMin(){
-  if(!elS.value||!elE.value)return 0;
-  const[sh,sm]=elS.value.split(':').map(Number),[eh,em]=elE.value.split(':').map(Number);
-  let d=(eh*60+em)-(sh*60+sm);if(d<0)d+=1440;return d;
-}
-elS.addEventListener('change',calcDur);elE.addEventListener('change',calcDur);
-
-/* ═══════════════════════════════════════════
-   RENDER
-   ═══════════════════════════════════════════ */
-function eBadge(eq){
-  const m={CONVEYOR:'b-conv',ASRS:'b-asrs',ELECTRICAL:'b-elec',UTILITY:'b-util',OTHER:'b-other'};
-  return '<span class="badge '+(m[eq]||'b-other')+'">'+eq+'</span>';
-}
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-
-function getFiltered(){
-  let r=loadRecords();
-  const fe=document.getElementById('filterEquip').value,fm=document.getElementById('filterMonth').value;
-  if(fe)r=r.filter(x=>x.equip===fe);
-  if(fm)r=r.filter(x=>x.date&&x.date.substring(0,7)===fm);
-  return r;
-}
-
-function renderTable(){
-  const all=loadRecords(),recs=getFiltered(),tb=document.getElementById('tBody');
-  if(!recs.length){
-    tb.innerHTML='<tr><td colspan="10" class="no-data">'+(all.length?'필터 조건에 맞는 이력 없음':'데이터 없음')+'</td></tr>';
-  }else{
-    tb.innerHTML=recs.map((r,i)=>{
-      const oi=all.indexOf(r);
-      return '<tr><td>'+(i+1)+'</td><td>'+r.date+'</td><td>'+eBadge(r.equip)+'</td><td>'+r.start+'</td><td>'+r.end+'</td><td>'+r.duration+'</td>'+
-        '<td style="text-align:left;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(r.symptom)+'">'+esc(r.symptom)+'</td>'+
-        '<td style="text-align:left;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(r.action)+'">'+esc(r.action)+'</td>'+
-        '<td>'+esc(r.parts||'-')+'</td><td><button class="btn-del" onclick="delRec('+oi+')">✕</button></td></tr>';
-    }).join('');
+function calcDuration() {
+  if (!fStart.value || !fEnd.value) {
+    fDuration.textContent = '시작/종료 시간을 입력하세요';
+    return '';
   }
-  updateStats(all);
+  const [sh, sm] = fStart.value.split(':').map(Number);
+  const [eh, em] = fEnd.value.split(':').map(Number);
+  let diff = (eh * 60 + em) - (sh * 60 + sm);
+  if (diff < 0) diff += 1440; // overnight
+  const h = Math.floor(diff / 60);
+  const m = diff % 60;
+  const txt = h > 0 ? h + '시간 ' + m + '분' : m + '분';
+  fDuration.textContent = txt + ' (' + diff + 'min)';
+  return txt;
+}
+fStart.addEventListener('change', calcDuration);
+fEnd.addEventListener('change', calcDuration);
+
+// ── Equipment Badge ──
+function equipBadge(eq) {
+  const map = {
+    'CONVEYOR': 'badge-conv',
+    'ASRS': 'badge-asrs',
+    'ELECTRICAL': 'badge-elec',
+    'UTILITY': 'badge-util',
+    'OTHER': 'badge-other'
+  };
+  return '<span class="badge ' + (map[eq]||'badge-other') + '">' + eq + '</span>';
 }
 
-function updateStats(r){
-  document.getElementById('sTotal').textContent=r.length;
-  const ym=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');
-  document.getElementById('sMonth').textContent=r.filter(x=>x.date&&x.date.substring(0,7)===ym).length;
-  if(r.length){
-    document.getElementById('sAvg').textContent=Math.round(r.reduce((s,x)=>s+(x.durationMin||0),0)/r.length)+'min';
-    const f={};r.forEach(x=>{f[x.equip]=(f[x.equip]||0)+1});
-    document.getElementById('sTop').textContent=Object.entries(f).sort((a,b)=>b[1]-a[1])[0][0];
-  }else{document.getElementById('sAvg').textContent='-';document.getElementById('sTop').textContent='-'}
+// ── Render Table ──
+function renderTable() {
+  const records = loadRecords();
+  const tbody = document.getElementById('tableBody');
+
+  if (records.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" class="no-data">등록된 이력이 없습니다</td></tr>';
+  } else {
+    tbody.innerHTML = records.map((r, i) =>
+      '<tr>' +
+        '<td>' + (i+1) + '</td>' +
+        '<td>' + r.date + '</td>' +
+        '<td>' + equipBadge(r.equip) + '</td>' +
+        '<td>' + r.start + '</td>' +
+        '<td>' + r.end + '</td>' +
+        '<td>' + r.duration + '</td>' +
+        '<td style="text-align:left;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + escHtml(r.symptom) + '">' + escHtml(r.symptom) + '</td>' +
+        '<td style="text-align:left;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + escHtml(r.action) + '">' + escHtml(r.action) + '</td>' +
+        '<td>' + escHtml(r.parts || '-') + '</td>' +
+        '<td><button class="btn-del" onclick="deleteRecord(' + i + ')">✕</button></td>' +
+      '</tr>'
+    ).join('');
+  }
+  updateStats(records);
 }
 
-/* ═══════════════════════════════════════════
-   FORM
-   ═══════════════════════════════════════════ */
-document.getElementById('bdForm').addEventListener('submit',async function(e){
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ── Stats ──
+function updateStats(records) {
+  document.getElementById('statTotal').textContent = records.length;
+
+  const now = new Date();
+  const ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const monthCount = records.filter(r => r.date.substring(0,7) === ym).length;
+  document.getElementById('statMonth').textContent = monthCount;
+
+  if (records.length > 0) {
+    const totalMin = records.reduce((sum, r) => {
+      const m = r.durationMin || 0;
+      return sum + m;
+    }, 0);
+    const avg = Math.round(totalMin / records.length);
+    document.getElementById('statAvgDur').textContent = avg + 'min';
+
+    // Top equipment
+    const freq = {};
+    records.forEach(r => { freq[r.equip] = (freq[r.equip]||0) + 1; });
+    const top = Object.entries(freq).sort((a,b) => b[1]-a[1])[0];
+    document.getElementById('statTopEquip').textContent = top[0];
+  } else {
+    document.getElementById('statAvgDur').textContent = '-';
+    document.getElementById('statTopEquip').textContent = '-';
+  }
+}
+
+// ── Form Submit ──
+document.getElementById('bdForm').addEventListener('submit', function(e) {
   e.preventDefault();
-  const dur=calcDur();if(!dur){alert('시작/종료 시간을 입력하세요');return}
-  const rec={
-    id:Date.now(),
-    date:document.getElementById('fDate').value,
-    equip:document.getElementById('fEquip').value,
-    start:elS.value,end:elE.value,
-    duration:dur,durationMin:getDurMin(),
-    symptom:document.getElementById('fSymptom').value.trim(),
-    action:document.getElementById('fAction').value.trim(),
-    parts:document.getElementById('fParts').value.trim(),
-    createdAt:new Date().toISOString()
-  };
-  const recs=loadRecords();recs.push(rec);saveLocal(recs);
-  renderTable();resetForm();
-  toast('✅ 등록 완료 (#'+recs.length+')','ok');
 
-  // Auto push
-  const c=loadConfig();
-  if(c.autoSync&&isConfigured()){
-    toast('🔄 GitHub 자동 동기화 중...','warn');
-    await pushToGitHub();
-  }
+  const dur = calcDuration();
+  if (!dur) { alert('시작시간과 종료시간을 입력하세요'); return; }
+
+  // calc minutes
+  const [sh, sm] = fStart.value.split(':').map(Number);
+  const [eh, em] = document.getElementById('fEnd').value.split(':').map(Number);
+  let diff = (eh*60+em) - (sh*60+sm);
+  if (diff < 0) diff += 1440;
+
+  const record = {
+    date: document.getElementById('fDate').value,
+    equip: document.getElementById('fEquip').value,
+    start: fStart.value,
+    end: document.getElementById('fEnd').value,
+    duration: dur,
+    durationMin: diff,
+    symptom: document.getElementById('fSymptom').value.trim(),
+    action: document.getElementById('fAction').value.trim(),
+    parts: document.getElementById('fParts').value.trim()
+  };
+
+  const records = loadRecords();
+  records.push(record);
+  saveRecords(records);
+  renderTable();
+  resetForm();
+  showToast('✅ 이력이 등록되었습니다');
 });
 
-function resetForm(){
+function resetForm() {
   document.getElementById('bdForm').reset();
-  elD.textContent='시작/종료를 입력하세요';
-  document.getElementById('fDate').valueAsDate=new Date();
-}
-function delRec(i){
-  if(!confirm('삭제하시겠습니까?'))return;
-  const r=loadRecords();r.splice(i,1);saveLocal(r);renderTable();toast('🗑 삭제됨','ok');
-}
-function clearAll(){
-  const r=loadRecords();if(!r.length)return;
-  if(!confirm('전체 '+r.length+'건 삭제?\n⚠️ 되돌릴 수 없습니다.\nJSON 백업을 먼저 권장합니다.'))return;
-  saveLocal([]);renderTable();toast('🗑 전체 삭제됨','ok');
+  fDuration.textContent = '시작/종료 시간을 입력하세요';
+  // Set today
+  document.getElementById('fDate').valueAsDate = new Date();
 }
 
-/* ═══════════════════════════════════════════
-   EXCEL / JSON EXPORT
-   ═══════════════════════════════════════════ */
-function exportExcel(){
-  const recs=getFiltered();if(!recs.length){alert('데이터 없음');return}
-  const data=recs.map((r,i)=>({'No.':i+1,'날짜':r.date,'설비':r.equip,'시작시간':r.start,'종료시간':r.end,'소요시간':r.duration,'소요시간(분)':r.durationMin,'현상':r.symptom,'조치방법':r.action,'사용자재':r.parts||''}));
-  const ws=XLSX.utils.json_to_sheet(data);
-  ws['!cols']=[{wch:5},{wch:12},{wch:14},{wch:10},{wch:10},{wch:14},{wch:10},{wch:35},{wch:35},{wch:20}];
-  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'BD_Log');
-  XLSX.writeFile(wb,'BD_Log_'+new Date().toISOString().slice(0,10)+'.xlsx');
-  toast('📥 Excel 다운로드 완료','ok');
-}
-function exportJSON(){
-  const r=loadRecords();if(!r.length){alert('백업할 데이터 없음');return}
-  const blob=new Blob([JSON.stringify({exportDate:new Date().toISOString(),count:r.length,records:r},null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='BD_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
-  toast('💾 JSON 백업 완료','ok');
-}
-function importJSON(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      const d=JSON.parse(ev.target.result);
-      let imp=Array.isArray(d)?d:(d.records||[]);
-      const valid=imp.filter(r=>r.date&&r.equip);
-      if(!valid.length){alert('유효 데이터 없음');return}
-      const ex=loadRecords();
-      if(ex.length&&confirm('기존 '+ex.length+'건에 추가(병합)?\\n취소 = 덮어쓰기')){
-        const ids=new Set(ex.map(r=>r.id));
-        saveLocal(ex.concat(valid.filter(r=>!ids.has(r.id))));
-      }else{saveLocal(valid)}
-      renderTable();toast('✅ '+valid.length+'건 복원','ok');
-    }catch(err){toast('❌ 파일 형식 오류','err')}
-  };reader.readAsText(file);e.target.value='';
+function deleteRecord(idx) {
+  if (!confirm('이 이력을 삭제하시겠습니까?')) return;
+  const records = loadRecords();
+  records.splice(idx, 1);
+  saveRecords(records);
+  renderTable();
+  showToast('🗑 이력이 삭제되었습니다');
 }
 
-/* ═══════════════════════════════════════════
-   UI HELPERS
-   ═══════════════════════════════════════════ */
-function updateSyncBadge(state,text){
-  const el=document.getElementById('syncBadge'),t=document.getElementById('syncBadgeText');
-  el.className='sync-badge sync-'+(state||'off');
-  t.textContent=text||'미연결';
-}
-function showLoading(on){document.getElementById('loading').classList.toggle('active',on)}
-function toast(msg,type){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className='toast show t-'+(type||'ok');
-  setTimeout(()=>{t.className='toast'},3200);
+function clearAll() {
+  if (!confirm('전체 이력을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+  saveRecords([]);
+  renderTable();
+  showToast('🗑 전체 이력이 삭제되었습니다');
 }
 
-/* ═══════════════════════════════════════════
-   INIT
-   ═══════════════════════════════════════════ */
-document.getElementById('fDate').valueAsDate=new Date();
-loadConfigUI();
+// ── Excel Export ──
+function exportExcel() {
+  const records = loadRecords();
+  if (records.length === 0) { alert('다운로드할 데이터가 없습니다'); return; }
+
+  const data = records.map((r, i) => ({
+    'No.': i + 1,
+    '날짜': r.date,
+    '설비': r.equip,
+    '시작시간': r.start,
+    '종료시간': r.end,
+    '소요시간': r.duration,
+    '소요시간(분)': r.durationMin,
+    '현상': r.symptom,
+    '조치방법': r.action,
+    '사용자재': r.parts || ''
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  // Column widths
+  ws['!cols'] = [
+    {wch:5}, {wch:12}, {wch:14}, {wch:10}, {wch:10},
+    {wch:14}, {wch:12}, {wch:30}, {wch:30}, {wch:20}
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'BD_Maintenance_Log');
+  XLSX.writeFile(wb, 'BD_Maintenance_Log_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  showToast('📥 Excel 파일이 다운로드되었습니다');
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Init ──
+document.getElementById('fDate').valueAsDate = new Date();
 renderTable();
-
-// Auto-pull on load if configured
-if(isConfigured()){
-  updateSyncBadge('local','연결됨');
-  pullFromGitHub();
-} else {
-  updateSyncBadge('off','미연결 — ⚙️ 설정 필요');
-}
 </script>
 </body>
 </html>
