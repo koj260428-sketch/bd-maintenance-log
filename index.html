@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BD Maintenance Log — GitHub Sync</title>
-<!-- CryptoJS for AES encryption -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-<!-- SheetJS for Excel -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
   :root{--pri:#0078D4;--pri-dk:#005A9E;--bg:#F5F5F5;--card:#FFF;--txt:#333;--txt-l:#666;--bdr:#E0E0E0;--ok:#107C10;--err:#D83B01;--warn:#FFB900;--row-alt:#F9F9F9}
@@ -25,10 +23,8 @@
   .sync-off{background:rgba(255,255,255,.15);color:rgba(255,255,255,.7)}
   .btn-icon{background:rgba(255,255,255,.15);border:none;color:#fff;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;transition:.2s}
   .btn-icon:hover{background:rgba(255,255,255,.3)}
-
   .container{max-width:980px;margin:18px auto;padding:0 14px}
 
-  /* SETTINGS */
   .settings-panel{background:var(--card);border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:18px;overflow:hidden;max-height:0;transition:max-height .5s ease,opacity .3s;opacity:0}
   .settings-panel.open{max-height:1200px;opacity:1}
   .settings-inner{padding:22px 26px}
@@ -45,27 +41,21 @@
   .info-blue{background:#F0F6FF;border:1px solid #C0D8F0;color:#1565C0}
   .info-green{background:#E8F5E9;border:1px solid #A5D6A7;color:#2E7D32}
   .info-yellow{background:#FFF8E1;border:1px solid #FFE082;color:#F57F17}
-  .info-red{background:#FFEBEE;border:1px solid #FFCDD2;color:#C62828}
-  .info-box strong{display:block;margin-bottom:4px;font-size:13px}
 
-  /* TABS */
   .tab-bar{display:flex;gap:0;margin-bottom:16px;border-bottom:2px solid var(--bdr)}
   .tab-btn{padding:10px 20px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--txt-l);border-bottom:2px solid transparent;margin-bottom:-2px;transition:.2s}
   .tab-btn.active{color:var(--pri);border-bottom-color:var(--pri)}
   .tab-btn:hover{color:var(--pri)}
   .tab-content{display:none}.tab-content.active{display:block}
 
-  /* CARD */
   .card{background:var(--card);border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:22px 26px;margin-bottom:18px}
   .card-title{font-size:15px;font-weight:600;color:var(--pri);margin-bottom:16px;padding-bottom:9px;border-bottom:2px solid var(--pri);display:flex;align-items:center;gap:7px}
 
-  /* STATS */
   .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
   .stat-card{background:var(--card);border-radius:12px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center}
   .stat-card .sv{font-size:24px;font-weight:700;color:var(--pri)}
   .stat-card .sl{font-size:10.5px;color:var(--txt-l);margin-top:2px}
 
-  /* FORM */
   .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
   .fg{display:flex;flex-direction:column}.fg.full{grid-column:1/-1}
   .fg label{font-size:12px;font-weight:600;margin-bottom:4px}.fg .req{color:var(--err)}
@@ -74,7 +64,18 @@
   .fg textarea{resize:vertical;min-height:68px}
   .dur-box{padding:8px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:13px;background:#F0F6FF;color:var(--pri);font-weight:600;min-height:38px;display:flex;align-items:center}
 
-  /* BUTTONS */
+  /* PHOTO UPLOAD */
+  .photo-upload-area{border:2px dashed var(--bdr);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:.3s;position:relative;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  .photo-upload-area:hover{border-color:var(--pri);background:#F8FBFF}
+  .photo-upload-area.has-photo{border-color:var(--ok);background:#F6FFF6}
+  .photo-upload-area input[type=file]{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer}
+  .photo-upload-area .icon{font-size:32px;opacity:.5}
+  .photo-upload-area .text{font-size:12px;color:var(--txt-l)}
+  .photo-preview{max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;display:none;object-fit:contain}
+  .photo-remove{position:absolute;top:8px;right:8px;background:var(--err);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2}
+  .photo-upload-area.has-photo .photo-remove{display:flex}
+  .photo-upload-area.has-photo .icon,.photo-upload-area.has-photo .text{display:none}
+
   .btn-row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
   .btn{padding:8px 20px;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:5px}
   .btn-pri{background:var(--pri);color:#fff}.btn-pri:hover{background:var(--pri-dk)}
@@ -84,7 +85,6 @@
   .btn-warn{background:var(--warn);color:#333}.btn-warn:hover{background:#E6A700}
   .btn-sm{padding:6px 14px;font-size:11.5px}
 
-  /* TABLE */
   .tw{overflow-x:auto;margin-top:10px}
   table{width:100%;border-collapse:collapse;font-size:12px}
   thead th{background:var(--pri);color:#fff;padding:8px 9px;text-align:center;font-weight:600;white-space:nowrap;position:sticky;top:0}
@@ -95,6 +95,17 @@
   .badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:10.5px;font-weight:600}
   .b-conv{background:#E3F2FD;color:#1565C0}.b-asrs{background:#F3E5F5;color:#7B1FA2}
   .b-elec{background:#FFF3E0;color:#E65100}.b-util{background:#E8F5E9;color:#2E7D32}.b-other{background:#F5F5F5;color:#616161}
+
+  /* TABLE THUMBNAIL */
+  .thumb{width:40px;height:40px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bdr);transition:.2s}
+  .thumb:hover{transform:scale(1.1);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .no-photo{color:var(--txt-l);font-size:10px}
+
+  /* LIGHTBOX */
+  .lightbox{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:2000;justify-content:center;align-items:center;cursor:pointer}
+  .lightbox.active{display:flex}
+  .lightbox img{max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+  .lightbox-close{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer}
 
   .sync-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 18px;background:#FAFAFA;border-radius:10px;border:1px dashed var(--bdr);margin-top:12px}
   .sync-bar span.label{font-size:12px;font-weight:600;color:var(--txt-l)}
@@ -114,7 +125,6 @@
   .spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* PASSWORD MODAL */
   .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:1001;justify-content:center;align-items:center}
   .modal-overlay.active{display:flex}
   .modal-box{background:#fff;border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
@@ -139,12 +149,19 @@
     .card{box-shadow:none;border:1px solid #ddd}
     #formCard,.sync-bar,.filter-row,.btn-del,.hdr-right,.settings-panel,.btn-row{display:none!important}
     thead th{background:#333!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .thumb{width:60px;height:60px}
   }
 </style>
 </head>
 <body>
 
 <div class="loading" id="loading"><div class="spinner"></div></div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="photo">
+</div>
 
 <!-- PASSWORD MODAL -->
 <div class="modal-overlay" id="pwModal">
@@ -166,7 +183,7 @@
 <div class="header">
   <div class="hdr-left">
     <div style="font-size:28px">🔧</div>
-    <div><h1>Breakdown Maintenance Log</h1><p>설비 고장 정비 이력 — GitHub Sync (Encrypted PAT)</p></div>
+    <div><h1>Breakdown Maintenance Log</h1><p>설비 고장 정비 이력 — GitHub Sync</p></div>
   </div>
   <div class="hdr-right">
     <div class="sync-badge sync-off" id="syncBadge"><span>●</span> <span id="syncBadgeText">초기화 중...</span></div>
@@ -181,78 +198,44 @@
 <div class="settings-panel" id="settingsPanel">
   <div class="settings-inner">
     <h3>⚙️ GitHub 연결 설정</h3>
-
-    <!-- TABS -->
     <div class="tab-bar">
       <button class="tab-btn active" onclick="switchTab('tabUnlock')">🔑 비밀번호 잠금해제</button>
-      <button class="tab-btn" onclick="switchTab('tabAdmin')">🛠️ 관리자 설정 (최초 1회)</button>
+      <button class="tab-btn" onclick="switchTab('tabAdmin')">🛠️ 관리자 설정</button>
     </div>
-
-    <!-- TAB 1: 일반 사용자 — 비밀번호만 입력 -->
     <div class="tab-content active" id="tabUnlock">
       <div class="info-box info-blue">
-        <strong>💡 일반 사용자 안내</strong>
-        config.json + auth.enc 파일이 GitHub에 있으면 <b>팀 비밀번호만 입력</b>하면 됩니다.<br>
-        PAT는 AES 암호화되어 GitHub에 저장되어 있으며, 비밀번호로 복호화합니다.
+        <strong>💡 팀원 안내</strong>
+        config.json + auth.enc 파일이 GitHub에 있으면 <b>팀 비밀번호만 입력</b>하면 됩니다.
       </div>
       <div class="set-grid">
         <div class="set-group full">
           <label>🔑 팀 비밀번호</label>
           <input type="password" id="unlockPw" placeholder="팀 비밀번호 입력">
-          <div class="hint">관리자가 설정한 팀 비밀번호를 입력하세요</div>
         </div>
       </div>
-      <div class="set-btns">
-        <button class="btn btn-pri btn-sm" onclick="unlockFromSettings()">🔓 잠금 해제 & 연결</button>
-      </div>
+      <div class="set-btns"><button class="btn btn-pri btn-sm" onclick="unlockFromSettings()">🔓 잠금 해제 & 연결</button></div>
     </div>
-
-    <!-- TAB 2: 관리자 — PAT 암호화 & 업로드 -->
     <div class="tab-content" id="tabAdmin">
       <div class="info-box info-yellow">
-        <strong>🛠️ 관리자 전용 (최초 1회 설정)</strong>
-        PAT를 팀 비밀번호로 암호화하여 GitHub에 <b>auth.enc</b> 파일로 저장합니다.<br>
-        이후 팀원들은 비밀번호만 입력하면 자동 연결됩니다.
+        <strong>🛠️ 관리자 전용 (최초 1회)</strong>
+        PAT를 팀 비밀번호로 AES 암호화하여 GitHub auth.enc로 저장합니다.
       </div>
       <div class="set-grid">
-        <div class="set-group">
-          <label>GitHub Owner</label>
-          <input type="text" id="cfgOwner" placeholder="예: ohjun-kwon">
-          <div class="hint">config.json에서 자동 로드</div>
-        </div>
-        <div class="set-group">
-          <label>Repository</label>
-          <input type="text" id="cfgRepo" placeholder="예: bd-maintenance-log">
-          <div class="hint">config.json에서 자동 로드</div>
-        </div>
-        <div class="set-group">
-          <label>🔑 Personal Access Token (PAT)</label>
-          <input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx">
-          <div class="hint">암호화되어 GitHub에 저장됩니다</div>
-        </div>
-        <div class="set-group">
-          <label>Excel 경로</label>
-          <input type="text" id="cfgPath" value="data/BD_Maintenance_Log.xlsx">
-        </div>
-        <div class="set-group">
-          <label>🔒 팀 비밀번호 (암호화 키)</label>
-          <input type="password" id="cfgPassword" placeholder="팀원들과 공유할 비밀번호">
-          <div class="hint">이 비밀번호로 PAT를 암호화합니다 (4자 이상)</div>
-        </div>
-        <div class="set-group">
-          <label>🔒 비밀번호 확인</label>
-          <input type="password" id="cfgPasswordConfirm" placeholder="비밀번호 재입력">
-        </div>
+        <div class="set-group"><label>GitHub Owner</label><input type="text" id="cfgOwner" placeholder="예: ohjun-kwon"><div class="hint">config.json에서 자동 로드</div></div>
+        <div class="set-group"><label>Repository</label><input type="text" id="cfgRepo" placeholder="예: bd-maintenance-log"></div>
+        <div class="set-group"><label>🔑 PAT</label><input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx"></div>
+        <div class="set-group"><label>Excel 경로</label><input type="text" id="cfgPath" value="data/BD_Maintenance_Log.xlsx"></div>
+        <div class="set-group"><label>🔒 팀 비밀번호</label><input type="password" id="cfgPassword" placeholder="4자 이상"></div>
+        <div class="set-group"><label>🔒 비밀번호 확인</label><input type="password" id="cfgPasswordConfirm" placeholder="재입력"></div>
         <div class="set-group full">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-            <input type="checkbox" id="cfgAutoSync" checked style="width:16px;height:16px">
-            이력 등록 시 자동 Push
+            <input type="checkbox" id="cfgAutoSync" checked style="width:16px;height:16px"> 이력 등록 시 자동 Push
           </label>
         </div>
       </div>
       <div class="set-btns">
         <button class="btn btn-out btn-sm" onclick="testConnection()">🔍 연결 테스트</button>
-        <button class="btn btn-warn btn-sm" onclick="encryptAndUploadPAT()">🔐 PAT 암호화 & GitHub 업로드</button>
+        <button class="btn btn-warn btn-sm" onclick="encryptAndUploadPAT()">🔐 PAT 암호화 & 업로드</button>
         <button class="btn btn-pri btn-sm" onclick="saveConfig()">💾 설정 저장</button>
       </div>
     </div>
@@ -284,6 +267,18 @@
       <div class="fg"><label>사용자재</label><input type="text" id="fParts" placeholder="Belt, Bearing, Fuse"></div>
       <div class="fg full"><label>현상<span class="req">*</span></label><textarea id="fSymptom" placeholder="고장 현상 상세 기술" required></textarea></div>
       <div class="fg full"><label>조치방법<span class="req">*</span></label><textarea id="fAction" placeholder="조치 내용 상세 기술" required></textarea></div>
+
+      <!-- PHOTO UPLOAD -->
+      <div class="fg full">
+        <label>📷 사진 첨부 (선택)</label>
+        <div class="photo-upload-area" id="photoArea">
+          <input type="file" id="fPhoto" accept="image/*" capture="environment" onchange="handlePhoto(event)">
+          <button type="button" class="photo-remove" onclick="removePhoto(event)">✕</button>
+          <div class="icon">📷</div>
+          <div class="text">클릭 또는 드래그하여 사진 첨부<br><span style="font-size:10px;color:#999">JPG, PNG / 최대 800px 자동 리사이즈</span></div>
+          <img class="photo-preview" id="photoPreview" alt="preview">
+        </div>
+      </div>
     </div>
     <div class="btn-row" style="margin-top:16px">
       <button type="button" class="btn btn-out" onclick="resetForm()">↻ 초기화</button>
@@ -308,8 +303,8 @@
     <button class="btn btn-out btn-sm" onclick="document.getElementById('filterEquip').value='';document.getElementById('filterMonth').value='';renderTable()">초기화</button>
   </div>
   <div class="tw">
-    <table><thead><tr><th>No.</th><th>날짜</th><th>설비</th><th>시작</th><th>종료</th><th>소요</th><th>현상</th><th>조치</th><th>자재</th><th></th></tr></thead>
-    <tbody id="tBody"><tr><td colspan="10" class="no-data">데이터 없음</td></tr></tbody></table>
+    <table><thead><tr><th>No.</th><th>날짜</th><th>설비</th><th>시작</th><th>종료</th><th>소요</th><th>현상</th><th>조치</th><th>자재</th><th>사진</th><th></th></tr></thead>
+    <tbody id="tBody"><tr><td colspan="11" class="no-data">데이터 없음</td></tr></tbody></table>
   </div>
   <div class="sync-bar">
     <span class="label">🔗 GitHub</span>
@@ -329,57 +324,74 @@
 /* ═══════════════════════════════════════
    CONSTANTS
    ═══════════════════════════════════════ */
-const STORE='bd_maint_log', SHA='bd_gh_sha', PW_KEY='bd_team_pw', PAT_KEY='bd_dec_pat';
+const STORE='bd_maint_log',SHA='bd_gh_sha',PW_KEY='bd_team_pw',PAT_KEY='bd_dec_pat',IMG_STORE='bd_maint_img';
 let CFG={owner:'',repo:'',path:'data/BD_Maintenance_Log.xlsx',token:'',autoSync:true};
-
-/* ═══════════════════════════════════════
-   TAB SWITCH
-   ═══════════════════════════════════════ */
-function switchTab(id){
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',b.getAttribute('onclick').includes(id)));
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-/* ═══════════════════════════════════════
-   CONFIG LOADING
-   ═══════════════════════════════════════ */
-async function loadConfigJSON(){
-  try{
-    const r=await fetch('config.json?'+Date.now());
-    if(!r.ok)return false;
-    const d=await r.json();
-    if(d.githubOwner&&d.githubOwner!=='YOUR_GITHUB_USERNAME'){
-      CFG.owner=d.githubOwner;CFG.repo=d.githubRepo||'';CFG.path=d.excelPath||'data/BD_Maintenance_Log.xlsx';
-      return true;
-    }
-  }catch(e){console.log('config.json 없음:',e.message)}
-  return false;
-}
-
-async function loadEncryptedPAT(){
-  // auth.enc 파일에서 암호화된 PAT 로드
-  try{
-    const r=await fetch('auth.enc?'+Date.now());
-    if(!r.ok)return null;
-    const text=await r.text();
-    return text.trim();
-  }catch(e){return null}
-}
-
-function decryptPAT(encrypted, password){
-  try{
-    const bytes=CryptoJS.AES.decrypt(encrypted,password);
-    const dec=bytes.toString(CryptoJS.enc.Utf8);
-    if(!dec||!dec.startsWith('ghp_')&&!dec.startsWith('github_pat_')){return null}
-    return dec;
-  }catch(e){return null}
-}
-
-/* ═══════════════════════════════════════
-   PASSWORD MODAL
-   ═══════════════════════════════════════ */
 let encryptedPATData=null;
+const MAX_IMG_W=800, IMG_QUALITY=0.7;
+
+/* ═══════════════════════════════════════
+   PHOTO HANDLING
+   ═══════════════════════════════════════ */
+let currentPhotoB64=null;
+
+function handlePhoto(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  if(!file.type.startsWith('image/')){toast('이미지 파일만 첨부 가능합니다','warn');return}
+
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const img=new Image();
+    img.onload=function(){
+      // Resize
+      const canvas=document.createElement('canvas');
+      let w=img.width, h=img.height;
+      if(w>MAX_IMG_W){h=Math.round(h*(MAX_IMG_W/w));w=MAX_IMG_W}
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      currentPhotoB64=canvas.toDataURL('image/jpeg',IMG_QUALITY);
+
+      // Preview
+      const preview=document.getElementById('photoPreview');
+      preview.src=currentPhotoB64;
+      preview.style.display='block';
+      document.getElementById('photoArea').classList.add('has-photo');
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(e){
+  e.stopPropagation();e.preventDefault();
+  currentPhotoB64=null;
+  document.getElementById('fPhoto').value='';
+  document.getElementById('photoPreview').style.display='none';
+  document.getElementById('photoPreview').src='';
+  document.getElementById('photoArea').classList.remove('has-photo');
+}
+
+function openLightbox(src){
+  document.getElementById('lightboxImg').src=src;
+  document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('active')}
+
+// Image Store (separate from records to keep localStorage efficient)
+function loadImages(){try{return JSON.parse(localStorage.getItem(IMG_STORE))||{}}catch{return{}}}
+function saveImages(imgs){try{localStorage.setItem(IMG_STORE,JSON.stringify(imgs))}catch(e){console.warn('Image storage full',e)}}
+
+/* ═══════════════════════════════════════
+   TAB / CONFIG / AUTH (same as before)
+   ═══════════════════════════════════════ */
+function switchTab(id){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('onclick').includes(id)));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+async function loadConfigJSON(){try{const r=await fetch('config.json?'+Date.now());if(!r.ok)return false;const d=await r.json();if(d.githubOwner&&d.githubOwner!=='YOUR_GITHUB_USERNAME'){CFG.owner=d.githubOwner;CFG.repo=d.githubRepo||'';CFG.path=d.excelPath||'data/BD_Maintenance_Log.xlsx';return true}}catch(e){}return false}
+
+async function loadEncryptedPAT(){try{const r=await fetch('auth.enc?'+Date.now());if(!r.ok)return null;return(await r.text()).trim()}catch(e){return null}}
+
+function decryptPAT(enc,pw){try{const b=CryptoJS.AES.decrypt(enc,pw);const d=b.toString(CryptoJS.enc.Utf8);if(!d||(!d.startsWith('ghp_')&&!d.startsWith('github_pat_')))return null;return d}catch(e){return null}}
 
 function showPwModal(){document.getElementById('pwModal').classList.add('active');document.getElementById('pwInput').focus()}
 function closePwModal(){document.getElementById('pwModal').classList.remove('active')}
@@ -387,125 +399,59 @@ function closePwModal(){document.getElementById('pwModal').classList.remove('act
 async function unlockWithPassword(){
   const pw=document.getElementById('pwInput').value;
   if(!pw){toast('비밀번호를 입력하세요','warn');return}
-  if(!encryptedPATData){toast('❌ 암호화된 PAT 파일(auth.enc)이 없습니다','err');closePwModal();return}
-
+  if(!encryptedPATData){toast('❌ auth.enc 파일 없음','err');closePwModal();return}
   const pat=decryptPAT(encryptedPATData,pw);
   if(!pat){toast('❌ 비밀번호가 틀렸습니다','err');return}
-
   CFG.token=pat;
-  // 기억하기 체크 시 localStorage에 비밀번호 저장
-  if(document.getElementById('pwRemember').checked){
-    localStorage.setItem(PW_KEY,pw);
-  }
+  if(document.getElementById('pwRemember').checked)localStorage.setItem(PW_KEY,pw);
   localStorage.setItem(PAT_KEY,pat);
-
-  closePwModal();
-  updateSyncBadge('ok','연결됨');
-  toast('🔓 PAT 복호화 성공! GitHub 연결 완료','ok');
+  closePwModal();updateSyncBadge('ok','연결됨');toast('🔓 복호화 성공!','ok');
   await pullFromGitHub();
 }
 
 async function unlockFromSettings(){
   const pw=document.getElementById('unlockPw').value;
-  if(!pw){toast('비밀번호를 입력하세요','warn');return}
-
-  // auth.enc를 GitHub API로 가져오기 (config.json이 로드된 경우)
-  if(!encryptedPATData){
-    // GitHub API로 auth.enc 시도
-    if(CFG.owner&&CFG.repo){
-      // 먼저 같은 디렉토리의 auth.enc 시도
-      try{
-        const r=await fetch('auth.enc?'+Date.now());
-        if(r.ok){encryptedPATData=await r.text()}
-      }catch(e){}
-    }
-    if(!encryptedPATData){toast('❌ auth.enc 파일을 찾을 수 없습니다','err');return}
-  }
-
+  if(!pw){toast('비밀번호 입력','warn');return}
+  if(!encryptedPATData){try{const r=await fetch('auth.enc?'+Date.now());if(r.ok)encryptedPATData=await r.text()}catch(e){}}
+  if(!encryptedPATData){toast('❌ auth.enc 없음','err');return}
   const pat=decryptPAT(encryptedPATData,pw);
-  if(!pat){toast('❌ 비밀번호가 틀렸습니다','err');return}
-
-  CFG.token=pat;
-  localStorage.setItem(PW_KEY,pw);
-  localStorage.setItem(PAT_KEY,pat);
-  updateSyncBadge('ok','연결됨');
-  toast('🔓 PAT 복호화 성공!','ok');
-  await pullFromGitHub();
+  if(!pat){toast('❌ 비밀번호 틀림','err');return}
+  CFG.token=pat;localStorage.setItem(PW_KEY,pw);localStorage.setItem(PAT_KEY,pat);
+  updateSyncBadge('ok','연결됨');toast('🔓 성공!','ok');await pullFromGitHub();
 }
 
-/* ═══════════════════════════════════════
-   ADMIN: PAT 암호화 & GitHub 업로드
-   ═══════════════════════════════════════ */
 async function encryptAndUploadPAT(){
-  const owner=document.getElementById('cfgOwner').value.trim();
-  const repo=document.getElementById('cfgRepo').value.trim();
-  const token=document.getElementById('cfgToken').value.trim();
-  const pw=document.getElementById('cfgPassword').value;
-  const pwc=document.getElementById('cfgPasswordConfirm').value;
-
-  if(!owner||!repo||!token){toast('Owner, Repo, PAT를 모두 입력하세요','warn');return}
-  if(!pw||pw.length<4){toast('비밀번호는 4자 이상이어야 합니다','warn');return}
-  if(pw!==pwc){toast('비밀번호가 일치하지 않습니다','warn');return}
-  if(!token.startsWith('ghp_')&&!token.startsWith('github_pat_')){
-    if(!confirm('PAT 형식이 일반적이지 않습니다. 계속하시겠습니까?'))return;
-  }
-
+  const o=document.getElementById('cfgOwner').value.trim(),r=document.getElementById('cfgRepo').value.trim(),t=document.getElementById('cfgToken').value.trim();
+  const pw=document.getElementById('cfgPassword').value,pwc=document.getElementById('cfgPasswordConfirm').value;
+  if(!o||!r||!t){toast('Owner, Repo, PAT 입력','warn');return}
+  if(!pw||pw.length<4){toast('비밀번호 4자 이상','warn');return}
+  if(pw!==pwc){toast('비밀번호 불일치','warn');return}
   showLoading(true);
   try{
-    // 1) AES 암호화
-    const encrypted=CryptoJS.AES.encrypt(token,pw).toString();
-
-    // 2) GitHub에 auth.enc 파일 업로드
+    const enc=CryptoJS.AES.encrypt(t,pw).toString();
     let sha=null;
-    try{
-      const chk=await fetch('https://api.github.com/repos/'+owner+'/'+repo+'/contents/auth.enc',{
-        headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}
-      });
-      if(chk.ok){const d=await chk.json();sha=d.sha}
-    }catch(e){}
-
-    const body={
-      message:'[Auth] Update encrypted PAT — '+new Date().toISOString().slice(0,16),
-      content:btoa(encrypted)
-    };
-    if(sha)body.sha=sha;
-
-    const res=await fetch('https://api.github.com/repos/'+owner+'/'+repo+'/contents/auth.enc',{
-      method:'PUT',
-      headers:{'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body:JSON.stringify(body)
-    });
-
-    if(!res.ok){const e=await res.json();throw new Error(e.message)}
-
-    // 성공 — 로컬에도 저장
-    CFG.owner=owner;CFG.repo=repo;CFG.token=token;
-    localStorage.setItem(PW_KEY,pw);
-    localStorage.setItem(PAT_KEY,token);
-    encryptedPATData=encrypted;
-
-    toast('🔐 PAT 암호화 & GitHub 업로드 성공! 팀원에게 비밀번호만 공유하세요','ok');
-    updateSyncBadge('ok','연결됨');
-  }catch(e){
-    console.error(e);
-    toast('❌ 업로드 실패: '+e.message,'err');
-  }finally{showLoading(false)}
+    try{const c=await fetch('https://api.github.com/repos/'+o+'/'+r+'/contents/auth.enc',{headers:{'Authorization':'token '+t}});if(c.ok)sha=(await c.json()).sha}catch(e){}
+    const body={message:'[Auth] Update encrypted PAT',content:btoa(enc)};if(sha)body.sha=sha;
+    const res=await fetch('https://api.github.com/repos/'+o+'/'+r+'/contents/auth.enc',{method:'PUT',headers:{'Authorization':'token '+t,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok)throw new Error((await res.json()).message);
+    CFG.owner=o;CFG.repo=r;CFG.token=t;localStorage.setItem(PW_KEY,pw);localStorage.setItem(PAT_KEY,t);
+    toast('🔐 PAT 암호화 & 업로드 성공!','ok');updateSyncBadge('ok','연결됨');
+  }catch(e){toast('❌ '+e.message,'err')}finally{showLoading(false)}
 }
 
-/* ═══════════════════════════════════════
-   CONFIG SAVE (local)
-   ═══════════════════════════════════════ */
 function saveConfig(){
-  CFG.owner=document.getElementById('cfgOwner').value.trim();
-  CFG.repo=document.getElementById('cfgRepo').value.trim();
-  const t=document.getElementById('cfgToken').value.trim();
-  if(t)CFG.token=t;
+  CFG.owner=document.getElementById('cfgOwner').value.trim();CFG.repo=document.getElementById('cfgRepo').value.trim();
+  const t=document.getElementById('cfgToken').value.trim();if(t)CFG.token=t;
   CFG.path=document.getElementById('cfgPath').value.trim()||'data/BD_Maintenance_Log.xlsx';
   CFG.autoSync=document.getElementById('cfgAutoSync').checked;
   localStorage.setItem('bd_cfg_local',JSON.stringify({owner:CFG.owner,repo:CFG.repo,path:CFG.path,autoSync:CFG.autoSync}));
-  if(t)localStorage.setItem(PAT_KEY,t);
-  toast('💾 설정 저장됨','ok');
-  updateSyncBadge();
+  if(t)localStorage.setItem(PAT_KEY,t);toast('💾 저장됨','ok');updateSyncBadge();
+}
+
+async function testConnection(){
+  const o=document.getElementById('cfgOwner').value.trim(),r=document.getElementById('cfgRepo').value.trim(),t=document.getElementById('cfgToken').value.trim();
+  if(!o||!r||!t){toast('입력 필요','warn');return}showLoading(true);
+  try{const res=await fetch('https://api.github.com/repos/'+o+'/'+r,{headers:{'Authorization':'token '+t}});if(res.ok){const d=await res.json();toast('✅ 연결 성공! → '+d.full_name,'ok')}else toast('❌ 실패','err')}catch(e){toast('❌ 오류','err')}finally{showLoading(false)}
 }
 
 function toggleSettings(){document.getElementById('settingsPanel').classList.toggle('open')}
@@ -517,68 +463,77 @@ function isReady(){return !!(CFG.owner&&CFG.repo&&CFG.token)}
 async function ghFetch(method,path,body){
   const url='https://api.github.com/repos/'+CFG.owner+'/'+CFG.repo+'/contents/'+path;
   const o={method,headers:{'Authorization':'token '+CFG.token,'Accept':'application/vnd.github.v3+json'}};
-  if(body){o.headers['Content-Type']='application/json';o.body=JSON.stringify(body)}
-  return fetch(url,o);
+  if(body){o.headers['Content-Type']='application/json';o.body=JSON.stringify(body)}return fetch(url,o);
 }
 
-async function testConnection(){
-  const o=document.getElementById('cfgOwner').value.trim();
-  const r=document.getElementById('cfgRepo').value.trim();
-  const t=document.getElementById('cfgToken').value.trim();
-  if(!o||!r||!t){toast('Owner, Repo, PAT를 입력하세요','warn');return}
-  showLoading(true);
+/* Upload image to GitHub */
+async function uploadImageToGH(recId, b64data){
+  if(!isReady()||!b64data)return '';
   try{
-    const res=await fetch('https://api.github.com/repos/'+o+'/'+r,{headers:{'Authorization':'token '+t}});
-    if(res.ok){const d=await res.json();toast('✅ 연결 성공! → '+d.full_name,'ok')}
-    else{toast('❌ 연결 실패','err')}
-  }catch(e){toast('❌ 네트워크 오류','err')}
-  finally{showLoading(false)}
+    const pure=b64data.split(',')[1]; // remove data:image/jpeg;base64,
+    const imgPath='images/'+recId+'.jpg';
+    let sha=null;
+    try{const c=await ghFetch('GET',imgPath);if(c.ok)sha=(await c.json()).sha}catch(e){}
+    const body={message:'[Photo] '+recId,content:pure};if(sha)body.sha=sha;
+    const res=await ghFetch('PUT',imgPath,body);
+    if(res.ok){
+      // Return raw URL
+      return 'https://raw.githubusercontent.com/'+CFG.owner+'/'+CFG.repo+'/main/'+imgPath;
+    }
+  }catch(e){console.error('Image upload error:',e)}
+  return '';
 }
 
+/* PULL */
 async function pullFromGitHub(){
-  if(!isReady()){toast('⚠️ GitHub 설정 필요','warn');toggleSettings();return}
+  if(!isReady()){toast('⚠️ 설정 필요','warn');toggleSettings();return}
   showLoading(true);
   try{
     const res=await ghFetch('GET',CFG.path);
-    if(res.status===404){toast('📭 Excel 없음 — Push 먼저 하세요','warn');updateSyncBadge('local','파일 없음');showLoading(false);return}
-    if(!res.ok){const e=await res.json();throw new Error(e.message)}
-    const data=await res.json();
-    localStorage.setItem(SHA,data.sha);
-    const bin=atob(data.content.replace(/\n/g,''));
-    const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-    const wb=XLSX.read(bytes,{type:'array'});
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    const rows=XLSX.utils.sheet_to_json(ws);
-    const records=rows.map(r=>({id:r['ID']||Date.now()+Math.random(),date:r['날짜']||'',equip:r['설비']||'',start:r['시작시간']||'',end:r['종료시간']||'',duration:r['소요시간']||'',durationMin:r['소요시간(분)']||0,symptom:r['현상']||'',action:r['조치방법']||'',parts:r['사용자재']||'',createdAt:r['등록시간']||''}));
+    if(res.status===404){toast('📭 Excel 없음','warn');updateSyncBadge('local','파일 없음');showLoading(false);return}
+    if(!res.ok)throw new Error((await res.json()).message);
+    const data=await res.json();localStorage.setItem(SHA,data.sha);
+    const bin=atob(data.content.replace(/\n/g,''));const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    const wb=XLSX.read(bytes,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws);
+    const records=rows.map(r=>({id:r['ID']||Date.now()+Math.random(),date:r['날짜']||'',equip:r['설비']||'',start:r['시작시간']||'',end:r['종료시간']||'',duration:r['소요시간']||'',durationMin:r['소요시간(분)']||0,symptom:r['현상']||'',action:r['조치방법']||'',parts:r['사용자재']||'',photo:r['사진URL']||'',createdAt:r['등록시간']||''}));
     saveLocal(records);renderTable();
-    const ts=new Date().toLocaleString('ko-KR');
-    document.getElementById('lastSync').textContent='동기화: '+ts+' (Pull ✅)';
-    updateSyncBadge('ok',records.length+'건 동기화');
-    toast('📥 '+records.length+'건 Pull 완료','ok');
+    document.getElementById('lastSync').textContent='동기화: '+new Date().toLocaleString('ko-KR')+' (Pull ✅)';
+    updateSyncBadge('ok',records.length+'건 동기화');toast('📥 '+records.length+'건 Pull 완료','ok');
   }catch(e){console.error(e);toast('❌ Pull 실패: '+e.message,'err');updateSyncBadge('err','Pull 실패')}
   finally{showLoading(false)}
 }
 
+/* PUSH */
 async function pushToGitHub(){
-  if(!isReady()){toast('⚠️ GitHub 설정 필요','warn');toggleSettings();return}
+  if(!isReady()){toast('⚠️ 설정 필요','warn');toggleSettings();return}
   const records=loadRecords();if(!records.length){toast('⚠️ 데이터 없음','warn');return}
   showLoading(true);
   try{
+    // Upload pending local images to GitHub
+    const imgs=loadImages();
+    for(const rec of records){
+      if(!rec.photo && imgs[rec.id]){
+        // Has local image but no GitHub URL yet
+        const url=await uploadImageToGH(rec.id, imgs[rec.id]);
+        if(url){rec.photo=url;delete imgs[rec.id]}
+      }
+    }
+    saveImages(imgs);saveLocal(records);
+
     let sha=localStorage.getItem(SHA)||null;
-    try{const c=await ghFetch('GET',CFG.path);if(c.ok){sha=(await c.json()).sha}else if(c.status===404)sha=null}catch(e){}
-    const exData=records.map((r,i)=>({'ID':r.id||i+1,'날짜':r.date,'설비':r.equip,'시작시간':r.start,'종료시간':r.end,'소요시간':r.duration,'소요시간(분)':r.durationMin,'현상':r.symptom,'조치방법':r.action,'사용자재':r.parts||'','등록시간':r.createdAt||''}));
+    try{const c=await ghFetch('GET',CFG.path);if(c.ok)sha=(await c.json()).sha;else if(c.status===404)sha=null}catch(e){}
+    const exData=records.map((r,i)=>({'ID':r.id||i+1,'날짜':r.date,'설비':r.equip,'시작시간':r.start,'종료시간':r.end,'소요시간':r.duration,'소요시간(분)':r.durationMin,'현상':r.symptom,'조치방법':r.action,'사용자재':r.parts||'','사진URL':r.photo||'','등록시간':r.createdAt||''}));
     const ws=XLSX.utils.json_to_sheet(exData);
-    ws['!cols']=[{wch:14},{wch:12},{wch:13},{wch:10},{wch:10},{wch:14},{wch:10},{wch:35},{wch:35},{wch:20},{wch:22}];
+    ws['!cols']=[{wch:14},{wch:12},{wch:13},{wch:10},{wch:10},{wch:14},{wch:10},{wch:35},{wch:35},{wch:20},{wch:50},{wch:22}];
     const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'BD_Log');
     const b64=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
-    const body={message:'[BD Log] '+records.length+' records — '+new Date().toISOString().slice(0,16),content:b64};
-    if(sha)body.sha=sha;
+    const body={message:'[BD Log] '+records.length+' records — '+new Date().toISOString().slice(0,16),content:b64};if(sha)body.sha=sha;
     const res=await ghFetch('PUT',CFG.path,body);
-    if(!res.ok){const e=await res.json();throw new Error(e.message)}
+    if(!res.ok)throw new Error((await res.json()).message);
     localStorage.setItem(SHA,(await res.json()).content.sha);
+    renderTable();
     document.getElementById('lastSync').textContent='동기화: '+new Date().toLocaleString('ko-KR')+' (Push ✅)';
-    updateSyncBadge('ok',records.length+'건 업로드');
-    toast('📤 '+records.length+'건 Push 완료','ok');
+    updateSyncBadge('ok',records.length+'건 업로드');toast('📤 '+records.length+'건 Push 완료','ok');
   }catch(e){console.error(e);toast('❌ Push 실패: '+e.message,'err');updateSyncBadge('err','Push 실패')}
   finally{showLoading(false)}
 }
@@ -593,13 +548,7 @@ function saveLocal(r){localStorage.setItem(STORE,JSON.stringify(r))}
    DURATION
    ═══════════════════════════════════════ */
 const elS=document.getElementById('fStart'),elE=document.getElementById('fEnd'),elD=document.getElementById('fDur');
-function calcDur(){
-  if(!elS.value||!elE.value){elD.textContent='시작/종료를 입력하세요';return''}
-  const[sh,sm]=elS.value.split(':').map(Number),[eh,em]=elE.value.split(':').map(Number);
-  let d=(eh*60+em)-(sh*60+sm);if(d<0)d+=1440;
-  const h=Math.floor(d/60),m=d%60,t=h>0?h+'시간 '+m+'분':m+'분';
-  elD.textContent=t+' ('+d+'min)';return t;
-}
+function calcDur(){if(!elS.value||!elE.value){elD.textContent='시작/종료를 입력하세요';return''}const[sh,sm]=elS.value.split(':').map(Number),[eh,em]=elE.value.split(':').map(Number);let d=(eh*60+em)-(sh*60+sm);if(d<0)d+=1440;const h=Math.floor(d/60),m=d%60,t=h>0?h+'시간 '+m+'분':m+'분';elD.textContent=t+' ('+d+'min)';return t}
 function getDurMin(){if(!elS.value||!elE.value)return 0;const[sh,sm]=elS.value.split(':').map(Number),[eh,em]=elE.value.split(':').map(Number);let d=(eh*60+em)-(sh*60+sm);if(d<0)d+=1440;return d}
 elS.addEventListener('change',calcDur);elE.addEventListener('change',calcDur);
 
@@ -611,9 +560,24 @@ function esc(s){const d=document.createElement('div');d.textContent=s;return d.i
 function getFiltered(){let r=loadRecords();const fe=document.getElementById('filterEquip').value,fm=document.getElementById('filterMonth').value;if(fe)r=r.filter(x=>x.equip===fe);if(fm)r=r.filter(x=>x.date&&x.date.substring(0,7)===fm);return r}
 
 function renderTable(){
-  const all=loadRecords(),recs=getFiltered(),tb=document.getElementById('tBody');
-  if(!recs.length){tb.innerHTML='<tr><td colspan="10" class="no-data">'+(all.length?'필터 조건 없음':'데이터 없음')+'</td></tr>'}
-  else{tb.innerHTML=recs.map((r,i)=>{const oi=all.findIndex(x=>x.id===r.id);return '<tr><td>'+(i+1)+'</td><td>'+r.date+'</td><td>'+eBadge(r.equip)+'</td><td>'+r.start+'</td><td>'+r.end+'</td><td>'+r.duration+'</td><td style="text-align:left;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(r.symptom)+'">'+esc(r.symptom)+'</td><td style="text-align:left;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(r.action)+'">'+esc(r.action)+'</td><td>'+esc(r.parts||'-')+'</td><td><button class="btn-del" onclick="delRec('+oi+')">✕</button></td></tr>'}).join('')}
+  const all=loadRecords(),recs=getFiltered(),tb=document.getElementById('tBody'),imgs=loadImages();
+  if(!recs.length){tb.innerHTML='<tr><td colspan="11" class="no-data">'+(all.length?'필터 조건 없음':'데이터 없음')+'</td></tr>'}
+  else{
+    tb.innerHTML=recs.map((r,i)=>{
+      const oi=all.findIndex(x=>x.id===r.id);
+      // Photo: GitHub URL or local base64
+      let photoHTML='<span class="no-photo">-</span>';
+      const imgSrc=r.photo || imgs[r.id] || '';
+      if(imgSrc){
+        photoHTML='<img class="thumb" src="'+imgSrc+'" onclick="openLightbox(\''+imgSrc.replace(/'/g,"\\'")+'\')" alt="photo">';
+      }
+      return '<tr><td>'+(i+1)+'</td><td>'+r.date+'</td><td>'+eBadge(r.equip)+'</td><td>'+r.start+'</td><td>'+r.end+'</td><td>'+r.duration+'</td>'+
+        '<td style="text-align:left;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(r.symptom)+'">'+esc(r.symptom)+'</td>'+
+        '<td style="text-align:left;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(r.action)+'">'+esc(r.action)+'</td>'+
+        '<td>'+esc(r.parts||'-')+'</td><td>'+photoHTML+'</td>'+
+        '<td><button class="btn-del" onclick="delRec('+oi+')">✕</button></td></tr>';
+    }).join('');
+  }
   updateStats(all);
 }
 
@@ -631,21 +595,76 @@ function updateStats(r){
 document.getElementById('bdForm').addEventListener('submit',async function(e){
   e.preventDefault();
   const dur=calcDur();if(!dur){alert('시작/종료 입력');return}
-  const rec={id:Date.now(),date:document.getElementById('fDate').value,equip:document.getElementById('fEquip').value,start:elS.value,end:elE.value,duration:dur,durationMin:getDurMin(),symptom:document.getElementById('fSymptom').value.trim(),action:document.getElementById('fAction').value.trim(),parts:document.getElementById('fParts').value.trim(),createdAt:new Date().toISOString()};
+  const recId=Date.now();
+  const rec={
+    id:recId,date:document.getElementById('fDate').value,equip:document.getElementById('fEquip').value,
+    start:elS.value,end:elE.value,duration:dur,durationMin:getDurMin(),
+    symptom:document.getElementById('fSymptom').value.trim(),action:document.getElementById('fAction').value.trim(),
+    parts:document.getElementById('fParts').value.trim(),photo:'',createdAt:new Date().toISOString()
+  };
+
+  // Save photo locally
+  if(currentPhotoB64){
+    const imgs=loadImages();
+    imgs[recId]=currentPhotoB64;
+    saveImages(imgs);
+  }
+
   const recs=loadRecords();recs.push(rec);saveLocal(recs);renderTable();resetForm();
   toast('✅ 등록 완료 (#'+recs.length+')','ok');
   if(CFG.autoSync&&isReady())await pushToGitHub();
 });
-function resetForm(){document.getElementById('bdForm').reset();elD.textContent='시작/종료를 입력하세요';document.getElementById('fDate').valueAsDate=new Date()}
-function delRec(i){if(!confirm('삭제?'))return;const r=loadRecords();r.splice(i,1);saveLocal(r);renderTable();toast('🗑 삭제','ok')}
-function clearAll(){const r=loadRecords();if(!r.length)return;if(!confirm('전체 '+r.length+'건 삭제?'))return;saveLocal([]);renderTable();toast('🗑 전체 삭제','ok')}
+
+function resetForm(){
+  document.getElementById('bdForm').reset();elD.textContent='시작/종료를 입력하세요';
+  document.getElementById('fDate').valueAsDate=new Date();
+  currentPhotoB64=null;
+  document.getElementById('photoPreview').style.display='none';
+  document.getElementById('photoPreview').src='';
+  document.getElementById('photoArea').classList.remove('has-photo');
+}
+
+function delRec(i){
+  if(!confirm('삭제?'))return;
+  const r=loadRecords();
+  const delId=r[i]?.id;
+  r.splice(i,1);saveLocal(r);
+  // Remove local image
+  if(delId){const imgs=loadImages();delete imgs[delId];saveImages(imgs)}
+  renderTable();toast('🗑 삭제','ok');
+}
+function clearAll(){const r=loadRecords();if(!r.length)return;if(!confirm('전체 '+r.length+'건 삭제?'))return;saveLocal([]);saveImages({});renderTable();toast('🗑 전체 삭제','ok')}
 
 /* ═══════════════════════════════════════
    EXPORT
    ═══════════════════════════════════════ */
-function exportExcel(){const recs=getFiltered();if(!recs.length){alert('데이터 없음');return}const data=recs.map((r,i)=>({'No.':i+1,'날짜':r.date,'설비':r.equip,'시작시간':r.start,'종료시간':r.end,'소요시간':r.duration,'소요시간(분)':r.durationMin,'현상':r.symptom,'조치방법':r.action,'사용자재':r.parts||''}));const ws=XLSX.utils.json_to_sheet(data);ws['!cols']=[{wch:5},{wch:12},{wch:14},{wch:10},{wch:10},{wch:14},{wch:10},{wch:35},{wch:35},{wch:20}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'BD_Log');XLSX.writeFile(wb,'BD_Log_'+new Date().toISOString().slice(0,10)+'.xlsx');toast('📥 Excel 완료','ok')}
-function exportJSON(){const r=loadRecords();if(!r.length){alert('없음');return}const blob=new Blob([JSON.stringify({exportDate:new Date().toISOString(),count:r.length,records:r},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='BD_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('💾 JSON 백업 완료','ok')}
-function importJSON(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){try{const d=JSON.parse(ev.target.result);let imp=Array.isArray(d)?d:(d.records||[]);const valid=imp.filter(r=>r.date&&r.equip);if(!valid.length){alert('유효 데이터 없음');return}const ex=loadRecords();if(ex.length&&confirm('기존 '+ex.length+'건에 추가?\n취소=덮어쓰기')){const ids=new Set(ex.map(r=>r.id));saveLocal(ex.concat(valid.filter(r=>!ids.has(r.id))))}else{saveLocal(valid)}renderTable();toast('✅ '+valid.length+'건 복원','ok')}catch(err){toast('❌ 형식 오류','err')}};reader.readAsText(file);e.target.value=''}
+function exportExcel(){
+  const recs=getFiltered(),imgs=loadImages();if(!recs.length){alert('데이터 없음');return}
+  const data=recs.map((r,i)=>({'No.':i+1,'날짜':r.date,'설비':r.equip,'시작시간':r.start,'종료시간':r.end,'소요시간':r.duration,'소요시간(분)':r.durationMin,'현상':r.symptom,'조치방법':r.action,'사용자재':r.parts||'','사진URL':r.photo||(imgs[r.id]?'[로컬저장]':'')}));
+  const ws=XLSX.utils.json_to_sheet(data);ws['!cols']=[{wch:5},{wch:12},{wch:14},{wch:10},{wch:10},{wch:14},{wch:10},{wch:35},{wch:35},{wch:20},{wch:50}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'BD_Log');
+  XLSX.writeFile(wb,'BD_Log_'+new Date().toISOString().slice(0,10)+'.xlsx');toast('📥 Excel 완료','ok');
+}
+function exportJSON(){
+  const r=loadRecords(),imgs=loadImages();if(!r.length){alert('없음');return}
+  const exportData=r.map(rec=>({...rec,photoBase64:imgs[rec.id]||null}));
+  const blob=new Blob([JSON.stringify({exportDate:new Date().toISOString(),count:r.length,records:exportData},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='BD_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('💾 JSON 백업 완료 (사진 포함)','ok');
+}
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;const reader=new FileReader();
+  reader.onload=function(ev){try{
+    const d=JSON.parse(ev.target.result);let imp=Array.isArray(d)?d:(d.records||[]);
+    const valid=imp.filter(r=>r.date&&r.equip);if(!valid.length){alert('유효 데이터 없음');return}
+    // Extract photos
+    const imgs=loadImages();
+    valid.forEach(r=>{if(r.photoBase64){imgs[r.id]=r.photoBase64;delete r.photoBase64}});
+    saveImages(imgs);
+    const ex=loadRecords();
+    if(ex.length&&confirm('기존 '+ex.length+'건에 추가?\n취소=덮어쓰기')){const ids=new Set(ex.map(r=>r.id));saveLocal(ex.concat(valid.filter(r=>!ids.has(r.id))))}else{saveLocal(valid)}
+    renderTable();toast('✅ '+valid.length+'건 복원','ok');
+  }catch(err){toast('❌ 형식 오류','err')}};reader.readAsText(file);e.target.value='';
+}
 
 /* ═══════════════════════════════════════
    UI HELPERS
@@ -658,47 +677,20 @@ function toast(msg,type){const t=document.getElementById('toast');t.textContent=
    INIT
    ═══════════════════════════════════════ */
 (async function(){
-  // 1. config.json 로드
   const hasJSON=await loadConfigJSON();
-
-  // 2. localStorage 백업 설정 로드
   try{const s=JSON.parse(localStorage.getItem('bd_cfg_local')||'{}');if(!CFG.owner&&s.owner)CFG.owner=s.owner;if(!CFG.repo&&s.repo)CFG.repo=s.repo;if(s.path)CFG.path=s.path;if(s.autoSync!==undefined)CFG.autoSync=s.autoSync}catch(e){}
-
-  // 3. auth.enc에서 암호화된 PAT 로드
   encryptedPATData=await loadEncryptedPAT();
+  const savedPw=localStorage.getItem(PW_KEY),savedPat=localStorage.getItem(PAT_KEY);
+  if(savedPat&&(savedPat.startsWith('ghp_')||savedPat.startsWith('github_pat_'))){CFG.token=savedPat}
+  else if(encryptedPATData&&savedPw){const dec=decryptPAT(encryptedPATData,savedPw);if(dec){CFG.token=dec;localStorage.setItem(PAT_KEY,dec)}}
 
-  // 4. 저장된 비밀번호로 자동 복호화 시도
-  const savedPw=localStorage.getItem(PW_KEY);
-  const savedPat=localStorage.getItem(PAT_KEY);
+  document.getElementById('cfgOwner').value=CFG.owner;document.getElementById('cfgRepo').value=CFG.repo;
+  document.getElementById('cfgPath').value=CFG.path;document.getElementById('cfgAutoSync').checked=CFG.autoSync;
+  document.getElementById('fDate').valueAsDate=new Date();renderTable();
 
-  if(savedPat&&(savedPat.startsWith('ghp_')||savedPat.startsWith('github_pat_'))){
-    // 이미 복호화된 PAT가 있음
-    CFG.token=savedPat;
-  } else if(encryptedPATData&&savedPw){
-    // 저장된 비밀번호로 복호화 시도
-    const dec=decryptPAT(encryptedPATData,savedPw);
-    if(dec){CFG.token=dec;localStorage.setItem(PAT_KEY,dec)}
-  }
-
-  // 5. UI 반영
-  document.getElementById('cfgOwner').value=CFG.owner;
-  document.getElementById('cfgRepo').value=CFG.repo;
-  document.getElementById('cfgPath').value=CFG.path;
-  document.getElementById('cfgAutoSync').checked=CFG.autoSync;
-  document.getElementById('fDate').valueAsDate=new Date();
-  renderTable();
-
-  // 6. 연결 상태 확인
-  if(isReady()){
-    updateSyncBadge('ok','연결됨');
-    await pullFromGitHub();
-  } else if(encryptedPATData&&CFG.owner){
-    // auth.enc 있지만 비밀번호 없음 → 모달
-    updateSyncBadge('local','🔑 비밀번호 필요');
-    showPwModal();
-  } else {
-    updateSyncBadge('off','⚙️ 설정 필요');
-  }
+  if(isReady()){updateSyncBadge('ok','연결됨');await pullFromGitHub()}
+  else if(encryptedPATData&&CFG.owner){updateSyncBadge('local','🔑 비밀번호 필요');showPwModal()}
+  else{updateSyncBadge('off','⚙️ 설정 필요')}
 })();
 </script>
 </body>
