@@ -7,7 +7,7 @@ sender = os.environ["NAVER_ID"]
 password = os.environ["NAVER_PASSWORD"]
 receiver = os.environ["RECEIVER_EMAIL"]
 
-file_path = "data/BM_Maintenance_Log.xlsx"
+file_path = "data/BD_Maintenance_Log.xlsx"
 
 msg = EmailMessage()
 
