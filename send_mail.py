@@ -3,6 +3,10 @@ import ssl
 import os
 from email.message import EmailMessage
 
+
+print("NAVER_ID:", os.environ.get("NAVER_ID"))
+print("RECEIVER_EMAIL:", os.environ.get("RECEIVER_EMAIL"))
+
 sender = os.environ["NAVER_ID"]
 password = os.environ["NAVER_PASSWORD"]
 receiver = os.environ["RECEIVER_EMAIL"]
