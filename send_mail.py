@@ -7,24 +7,28 @@ sender = os.environ["NAVER_ID"]
 password = os.environ["NAVER_PASSWORD"]
 receiver = os.environ["RECEIVER_EMAIL"]
 
+file_path = "data/BM_Maintenance_Log.xlsx"
+
 msg = EmailMessage()
 
-msg["Subject"] = "[KPI] 자동 발송"
+msg["Subject"] = "[BM Maintenance] Weekly Log"
 msg["From"] = sender
 msg["To"] = receiver
 
 msg.set_content("""
 안녕하세요.
 
-GitHub에 있는 KPI 파일을 자동 발송합니다.
+BM Maintenance Log 자동 발송 메일입니다.
+
+첨부파일을 확인해 주세요.
 """)
 
-with open("KPI_Data.xlsx", "rb") as f:
+with open(file_path, "rb") as f:
     msg.add_attachment(
         f.read(),
         maintype="application",
         subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="KPI_Data.xlsx"
+        filename="BM_Maintenance_Log.xlsx"
     )
 
 context = ssl.create_default_context()
